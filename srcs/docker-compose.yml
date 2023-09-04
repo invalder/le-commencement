@@ -1,0 +1,147 @@
+version: '3.8'
+services:
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+    restart: always
+    networks:
+      - monitoring_net
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    depends_on:
+      - mariadb
+    volumes:
+      - wordpress_data:/var/www/html
+    restart: always
+    networks:
+      - monitoring_net
+    env_file:
+      - .env
+
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    restart: always
+    networks:
+      - monitoring_net
+    env_file:
+      - .env
+
+  redis:
+    build: ./requirements/bonus/redis
+    container_name: redis
+    depends_on:
+      - wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+    restart: always
+    networks:
+      - monitoring_net
+    env_file:
+      - .env
+
+  ftp_server:
+    build: ./requirements/bonus/ftp_server
+    container_name: ftp_server
+    ports:
+      - "21:21"
+      - "21100-21110:21100-21110"
+    volumes:
+      - wordpress_data:/var/www/html
+    restart: always
+    networks:
+      - monitoring_net
+    env_file:
+      - .env
+
+  adminer:
+    build: ./requirements/bonus/adminer
+    container_name: adminer
+    depends_on:
+      - mariadb
+    restart : always
+    networks:
+      - monitoring_net
+
+  static:
+    build: ./requirements/bonus/static
+    container_name: static
+    depends_on:
+      - wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+    restart : always
+    networks:
+      - monitoring_net
+
+  cadvisor:
+    build: ./requirements/bonus/cadvisor
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    restart : always
+    depends_on:
+      - redis
+    networks:
+      - monitoring_net
+
+  prometheus:
+    build: ./requirements/bonus/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+    restart : always
+    networks:
+      - monitoring_net
+
+  node-exporter:
+    build: ./requirements/bonus/node_exporter
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    networks:
+      - monitoring_net
+
+volumes:
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /Users/nnakarac/data/wordpress
+      o: bind
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /Users/nnakarac/data/mariadb
+      o: bind
+  prometheus_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /Users/nnakarac/data/prometheus
+      o: bind
+
+networks:
+  monitoring_net:
+    driver: bridge
+
