@@ -126,19 +126,19 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /Users/nnakarac/data/wordpress
+      device: ${DATA_PATH}/data/wordpress
       o: bind
   mariadb_data:
     driver: local
     driver_opts:
       type: none
-      device: /Users/nnakarac/data/mariadb
+      device: ${DATA_PATH}/data/mariadb
       o: bind
   prometheus_data:
     driver: local
     driver_opts:
       type: none
-      device: /Users/nnakarac/data/prometheus
+      device: ${DATA_PATH}/data/prometheus
       o: bind
 
 networks:

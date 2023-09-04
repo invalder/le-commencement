@@ -1,8 +1,20 @@
+# Detect the operating system and set DATA_PATH accordingly
+ifeq ($(shell uname),Darwin)
+	# macOS
+	DATA_PATH := /Users/$(USER)
+else
+	# Linux or other OS
+	DATA_PATH := /home/$(USER)
+endif
+
+# Export the DATA_PATH so that it's available for docker-compose
+export DATA_PATH
+
 all : data_folder
 	@docker compose -f ./srcs/docker-compose.yml up -d --build
 
 data_folder:
-	@mkdir -p /Users/nnakarac/data/wordpress /Users/nnakarac/data/mariadb /Users/nnakarac/data/prometheus
+	@mkdir -p $(DATA_PATH)/data/wordpress $(DATA_PATH)/data/mariadb $(DATA_PATH)/data/prometheus
 
 down :
 	@docker compose -f ./srcs/docker-compose.yml down
